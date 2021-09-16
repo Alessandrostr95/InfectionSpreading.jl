@@ -18,7 +18,7 @@ models_dict, requirements,
 set_infected!, set_recovered!, infected, recovered, is_infected, is_recovered,
 add_infected!, add_recovered!, infect!, recover!, is_susceptible,
 graph, nv, ne, neighbors, neighborhood, reset_model,
-IC_process,
+reed_frost_process,
 
 plot_process, plot_simulation,
 simulation

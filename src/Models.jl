@@ -42,8 +42,6 @@ end
     Torus graph UNION random perfect matching
 """
 mutable struct TORUS_U_MATCHING <: SirModel
-    #torus::SimpleGraph
-    #matching::SimpleGraph
     graph::SimpleGraph
     rows::Integer
     columns::Integer
@@ -137,8 +135,6 @@ end
     While 'outer_p' is the probability that there are edges between the two communities.
 """
 mutable struct TWO_CLUSTER_SBM <: SirModel
-    #P::Matrix{Float64}
-    #n::Vector{Integer}
     n1::Integer
     n2::Integer
     inner_p::Float64
@@ -160,7 +156,6 @@ function set_infected!(x::SirModel, nodes::Integer...)
 end
 set_infected!(x::SirModel, nodes::Vector{Integer}) = set_infected!(x, nodes...)
 set_infected!(x::SirModel, nodes::Vector{Int64}) = set_infected!(x, nodes...)
-
 
 """
     Sets the recovered nodes
