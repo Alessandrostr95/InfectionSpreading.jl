@@ -71,8 +71,10 @@ mutable struct TORUS_U_RANDOM_GRAPH <: SirModel
     recovered::Set{Integer}
     function TORUS_U_RANDOM_GRAPH(rows::Integer, columns::Integer, α::Real)
         (α ≤ 0) &&  throw(DomainError("α must be a strictly positive value. $α given."))
-        t = torus_graph(rows, columns)
-        return new(grass_hop_over_torus(t, α), rows, columns, α, Set{Integer}(), Set{Integer}())
+        #t = torus_graph(rows, columns)
+        t = torus_SWG(rows, columns, α)
+        #return new(grass_hop_over_torus(t, α), rows, columns, α, Set{Integer}(), Set{Integer}())
+        return new(t, rows, columns, α, Set{Integer}(), Set{Integer}())
     end
 end
 

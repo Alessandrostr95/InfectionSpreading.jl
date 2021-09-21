@@ -172,6 +172,36 @@ function trivial_cycle_SWG(n::Integer, α::Real)
     return g
 end
 
+get_row_index(index::Integer, columns::Integer)::Integer = ((index-1)÷columns) + 1
+get_column_index(index::Integer, columns::Integer)::Integer = ((index-1)%columns) + 1
+get_coord(index::Integer, columns::Integer) = (get_row_index(index,columns), get_column_index(index,columns))
+
+"""
+    Function that return the distance between the nodes u, v 
+    in a torus graph (rows × columns), in a constant run-time.
+"""
+function torus_distances(u::Integer, v::Integer, rows::Integer, columns::Integer)::Integer
+    ru::Integer, cu::Integer = get_coord(u, columns)
+    rv::Integer, cv::Integer = get_coord(v, columns)
+    return min( mod(ru-rv, rows), mod(rv-ru, rows) ) + min( mod(cu-cv, columns), mod(cv-cu, columns) ) 
+end 
+
+"""
+    Trivial method that returns a Small-World-Graph SWG(n, m, α)
+"""
+function torus_SWG(rows::Integer, columns::Integer, α::Real)
+    n::Integer = rows*columns
+    c = compute_c(α, n)
+    g = torus_graph(rows, columns)
+    d(u,v) = torus_distances(u, v, rows, columns)
+    for i=1:(n-1), j=i:n
+        if ( rand() ≤ (1/c)*(1/(d(i,j)^α)) )
+            add_edge!(g, i, j)
+        end
+    end
+    return g
+end
+
 """
     Returns a stochastic block graph with 2 cluster, with n1, n2 nodes
 """
