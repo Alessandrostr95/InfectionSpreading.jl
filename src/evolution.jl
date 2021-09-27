@@ -71,6 +71,10 @@ end
     constructs and returns an instance of the given model
 """
 function create(model_type::DataType, params::Dict)::SirModel
+    model_type == NETWORK && return NETWORK(params[:graph])
+
+    model_type == ERDOS_RENYI && return ERDOS_RENYI(params[:n], params[:p])
+
     model_type == TORUS_U_ERDOS_RENYI && return TORUS_U_ERDOS_RENYI(params[:rows], params[:columns], params[:p])
     model_type == TORUS_U_MATCHING && return TORUS_U_MATCHING(params[:rows], params[:columns])
     model_type == TORUS_U_RANDOM_GRAPH && return TORUS_U_RANDOM_GRAPH(params[:rows], params[:columns], params[:α])
@@ -80,9 +84,15 @@ function create(model_type::DataType, params::Dict)::SirModel
     model_type == CYCLE_U_RANDOM_GRAPH && return CYCLE_U_RANDOM_GRAPH(params[:n], params[:α])
 
     model_type == TWO_CLUSTER_SBM && return TWO_CLUSTER_SBM(params[:n1], params[:n2], params[:inner_p], params[:outer_p])
+
+    model_type == LATTICE && return LATTICE(params[:shape])
+    model_type == LATTICE_U_RANDOM_GRAPH && return LATTICE_U_RANDOM_GRAPH(params[:α], params[:shape])
+
+    model_type == HYPERCUBE && return HYPERCUBE(params[:dimension])
+    model_type == HYPERCUBE_U_RANDOM_GRAPH && return HYPERCUBE_U_RANDOM_GRAPH(params[:dimension], params[:α])
 end
 
-using Statistics:mean, stdm
+using Statistics:mean, stdm, std
 import Plots
 # using ProgressMeter # un po' buggato, appena risolvono lo inserisco
 
@@ -169,6 +179,7 @@ function simulation(
     for p=probs_limits[1]:ε:probs_limits[2]
         res = Float64[]
         all_times = Int64[]
+        total_infected = Int64[]
 
         for g in samples_models
             reset_model(g)
@@ -177,6 +188,7 @@ function simulation(
 
             push!(res, rf_process["% infected"])
             push!(all_times, rf_process["age"])
+            push!(total_infected, rf_process["total infected"])
 
             i += 1
             log && begin
@@ -187,7 +199,8 @@ function simulation(
         end
 
         infected[p] = mean(res)
-        standard_deviation[p] = stdm(res, infected[p])
+        #standard_deviation[p] = stdm(res, infected[p])
+        standard_deviation[p] = std(total_infected)
         time[p] = mean(all_times)
     end
 

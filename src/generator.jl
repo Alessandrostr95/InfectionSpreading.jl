@@ -160,7 +160,7 @@ end
 """
     Trivial method that returns a Small-World-Graph SWG(n, α)
 """
-function trivial_cycle_SWG(n::Integer, α::Real)
+function cycle_SWG(n::Integer, α::Real)
     c = compute_c(α, n)
     g = cycle_graph(n)
     d(u,v) = min( mod(u-v, n), mod(v-u, n) )
@@ -248,4 +248,39 @@ end
 function avg_deg(g::SimpleGraph)::Float64
     n = nv(g)
     sum([degree(g,v) for v in vertices(g)])/n
+end
+
+###############################################
+###############################################
+###############################################
+
+"""
+    Function that generate a periodic k-dimensional lattice,
+    where k = length(shape).
+"""
+function lattice(shape::Integer...)
+    LightGraphs.grid(shape, periodic=true)
+end
+
+lattice(shape::Vector{Integer}) = lattice(shape...)
+
+"""
+    Function that generate and return an hypercube
+    whit `dim` dimention (at least 3-dimentional)
+"""
+function hypercube(dim::Int64)
+    dim ≥ 3 || throw(DomainError("The dimension must be at least 3."))
+    LightGraphs.grid([2 for _=1:dim])
+end
+
+function SWG(g::SimpleGraph, α::Real)
+    n = nv(g)
+    c = compute_c(α, n)
+    for u=1:(n-1)
+        dists::Vector{Int64} = dijkstra_shortest_paths(g, u).dists
+        for v=u:n
+            rand() ≤ (1/c)*(1/(dists[v]^α)) && add_edge!(g, u, v)
+        end
+    end
+    return g
 end

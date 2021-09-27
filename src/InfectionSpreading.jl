@@ -10,9 +10,12 @@ export
 # Abstract type
 SirModel,
 # Models
+NETWORK, ERDOS_RENYI,
 TORUS_U_ERDOS_RENYI, TORUS_U_MATCHING, TORUS_U_RANDOM_GRAPH,
 CYCLE_U_ERDOS_RENYI, CYCLE_U_MATCHING, CYCLE_U_RANDOM_GRAPH,
 TWO_CLUSTER_SBM,
+LATTICE, LATTICE_U_RANDOM_GRAPH,
+HYPERCUBE, HYPERCUBE_U_RANDOM_GRAPH,
 models_dict, requirements,
 # Methods
 set_infected!, set_recovered!, infected, recovered, is_infected, is_recovered,

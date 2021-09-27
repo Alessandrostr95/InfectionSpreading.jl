@@ -4,9 +4,12 @@ export
 # Abstract type
 SirModel,
 # Models
+NETWORK, ERDOS_RENYI,
 TORUS_U_ERDOS_RENYI, TORUS_U_MATCHING, TORUS_U_RANDOM_GRAPH,
 CYCLE_U_ERDOS_RENYI, CYCLE_U_MATCHING, CYCLE_U_RANDOM_GRAPH,
 TWO_CLUSTER_SBM,
+LATTICE, LATTICE_U_RANDOM_GRAPH,
+HYPERCUBE, HYPERCUBE_U_RANDOM_GRAPH,
 # Methods
 set_infected!, set_recovered!, infected, recovered, is_infected, is_recovered,
 add_infected!, add_recovered!, infect!, recover!, is_susceptible,
@@ -19,6 +22,34 @@ include("generator.jl")
 using LightGraphs
 
 abstract type SirModel end
+
+"""
+    A simple network based on a given graph
+"""
+mutable struct NETWORK <: SirModel
+    graph::SimpleGraph
+    infected::Set{Integer}
+    recovered::Set{Integer}
+    function NETWORK(graph::SimpleGraph, infected::Set{Integer}, recovered::Set{Integer})
+        return new(graph, infected, recovered)
+    end
+end
+NETWORK(graph) = NETWORK(graph, Set{Integer}(), Set{Integer}())
+
+
+"""
+    An Erdos-Renyi random graph
+"""
+mutable struct ERDOS_RENYI <: SirModel
+    graph::SimpleGraph
+    p::Float64
+    infected::Set{Integer}
+    recovered::Set{Integer}
+    function ERDOS_RENYI(n::Integer, p::Float64=0.5)
+        ( p < 0 || p > 1 ) && throw(DomainError("p must be between 0 and 1. $p given."))
+        return new(grass_hop(n, p), p, Set{Integer}(), Set{Integer}())
+    end
+end
 
 """
     Torus graph UNION Erdos-Renyi random graph
@@ -70,7 +101,7 @@ mutable struct TORUS_U_RANDOM_GRAPH <: SirModel
     infected::Set{Integer}
     recovered::Set{Integer}
     function TORUS_U_RANDOM_GRAPH(rows::Integer, columns::Integer, α::Real)
-        (α ≤ 0) &&  throw(DomainError("α must be a strictly positive value. $α given."))
+        (α ≤ 0) && throw(DomainError("α must be a strictly positive value. $α given."))
         #t = torus_graph(rows, columns)
         t = torus_SWG(rows, columns, α)
         #return new(grass_hop_over_torus(t, α), rows, columns, α, Set{Integer}(), Set{Integer}())
@@ -124,9 +155,9 @@ mutable struct CYCLE_U_RANDOM_GRAPH <: SirModel
     recovered::Set{Integer}
     function CYCLE_U_RANDOM_GRAPH(n::Integer, α::Real)
         (n ≤ 2) && throw(DomainError("n must be greather then 2. $n given."))
-        (α ≤ 0) &&  throw(DomainError("α must be a strictly positive value. $α given."))
+        (α ≤ 0) && throw(DomainError("α must be a strictly positive value. $α given."))
         return new(grass_hop_rb(n, α), α, Set{Integer}(), Set{Integer}())
-        #return new(trivial_cycle_SWG(n, α), α, Set{Integer}(), Set{Integer}())
+        #return new(cycle_SWG(n, α), α, Set{Integer}(), Set{Integer}())
     end
 end
 
@@ -149,6 +180,66 @@ mutable struct TWO_CLUSTER_SBM <: SirModel
         return new(n1, n2, inner_p, outer_p, two_cluster_sbm(n1, n2, inner_p, outer_p), Set{Integer}(), Set{Integer}())
     end
 end
+
+"""
+    A generic k-dimensional periodic lattice, where k = length(shape).
+"""
+mutable struct LATTICE <: SirModel
+    graph::SimpleGraph
+    shape::NTuple{N,Integer} where N
+    infected::Set{Integer}
+    recovered::Set{Integer}
+    function LATTICE(shape::Integer...)
+        return new(lattice(shape...), shape, Set{Integer}(), Set{Integer}())
+    end
+end
+
+LATTICE(shape::Vector{T}) where T <: Integer = LATTICE(shape...)
+LATTICE(shape::Tuple{T}) where T <: Integer = LATTICE(shape...)
+
+mutable struct LATTICE_U_RANDOM_GRAPH <: SirModel
+    graph::SimpleGraph
+    shape::NTuple{N,Integer} where N
+    α::Real
+    infected::Set{Integer}
+    recovered::Set{Integer}
+    function LATTICE_U_RANDOM_GRAPH(α::Real, shape::Integer...)
+        (α ≤ 0) && throw(DomainError("α must be a strictly positive value. $α given."))
+        l = lattice(shape...)
+        return new(SWG(l, α), shape, α, Set{Integer}(), Set{Integer}())
+    end
+end
+
+LATTICE_U_RANDOM_GRAPH(α::Real, shape::Vector{T}) where T <: Integer = LATTICE_U_RANDOM_GRAPH(α, shape...)
+LATTICE_U_RANDOM_GRAPH(α::Real, shape::Tuple{T}) where T <: Integer = LATTICE_U_RANDOM_GRAPH(α, shape...)
+
+"""
+    A N-dimension hypercube
+"""
+mutable struct HYPERCUBE <: SirModel
+    graph::SimpleGraph
+    dimension::Int64
+    infected::Set{Integer}
+    recovered::Set{Integer}
+    function HYPERCUBE(N::Int64)
+        return new(hypercube(N), N, Set{Integer}(), Set{Integer}())
+    end
+end
+
+mutable struct HYPERCUBE_U_RANDOM_GRAPH <: SirModel
+    graph::SimpleGraph
+    dimension::Int64
+    α::Real
+    infected::Set{Integer}
+    recovered::Set{Integer}
+    function HYPERCUBE_U_RANDOM_GRAPH(N::Int64, α::Real)
+        (α ≤ 0) && throw(DomainError("α must be a strictly positive value. $α given."))
+        h = hypercube(N)
+        return new(SWG(h, α), N, α, Set{Integer}(), Set{Integer}())
+    end
+end
+
+## METHODS
 
 """
     Sets the infected nodes
