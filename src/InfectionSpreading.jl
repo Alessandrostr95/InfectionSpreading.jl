@@ -11,11 +11,11 @@ export
 SirModel,
 # Models
 NETWORK, ERDOS_RENYI,
-TORUS_U_ERDOS_RENYI, TORUS_U_MATCHING, TORUS_U_RANDOM_GRAPH,
-CYCLE_U_ERDOS_RENYI, CYCLE_U_MATCHING, CYCLE_U_RANDOM_GRAPH,
+TORUS_U_ERDOS_RENYI, TORUS_U_MATCHING, TORUS_U_POWERLAW,
+CYCLE_U_ERDOS_RENYI, CYCLE_U_MATCHING, CYCLE_U_POWERLAW,
 TWO_CLUSTER_SBM,
-LATTICE, LATTICE_U_RANDOM_GRAPH,
-HYPERCUBE, HYPERCUBE_U_RANDOM_GRAPH,
+LATTICE, LATTICE_U_POWERLAW,
+HYPERCUBE, HYPERCUBE_U_POWERLAW,
 models_dict, requirements,
 # Methods
 set_infected!, set_recovered!, infected, recovered, is_infected, is_recovered,
@@ -29,20 +29,24 @@ simulation
 models_dict = Dict{String, DataType}(
     "TORUS_U_ERDOS_RENYI" => TORUS_U_ERDOS_RENYI,
     "TORUS_U_MATCHING" => TORUS_U_MATCHING,
-    "TORUS_U_RANDOM_GRAPH" => TORUS_U_RANDOM_GRAPH,
+    "TORUS_U_POWERLAW" => TORUS_U_POWERLAW,
     "CYCLE_U_ERDOS_RENYI" => CYCLE_U_ERDOS_RENYI,
     "CYCLE_U_MATCHING" => CYCLE_U_MATCHING,
-    "CYCLE_U_RANDOM_GRAPH" => CYCLE_U_RANDOM_GRAPH,
-    "TWO_CLUSTER_SBM" => TWO_CLUSTER_SBM
+    "CYCLE_U_POWERLAW" => CYCLE_U_POWERLAW,
+    "TWO_CLUSTER_SBM" => TWO_CLUSTER_SBM,
+    "LATTICE" => LATTICE,
+    "LATTICE_U_POWERLAW" => LATTICE_U_POWERLAW,
+    "HYPERCUBE" => HYPERCUBE,
+    "HYPERCUBE_U_POWERLAW" => HYPERCUBE_U_POWERLAW,
 )
 
 requirements = Dict{String, Vector{String}}(
     "TORUS_U_ERDOS_RENYI" => ["rows", "cols", "probs"],
     "TORUS_U_MATCHING" => ["rows", "cols"],
-    "TORUS_U_RANDOM_GRAPH" => ["rows", "cols", "alpha"],
+    "TORUS_U_POWERLAW" => ["rows", "cols", "alpha"],
     "CYCLE_U_ERDOS_RENYI" => ["nodes", "probs"],
     "CYCLE_U_MATCHING" => ["nodes"],
-    "CYCLE_U_RANDOM_GRAPH" => ["nodes", "alpha"],
+    "CYCLE_U_POWERLAW" => ["nodes", "alpha"],
     "TWO_CLUSTER_SBM" => ["nodes", "probs"]
 )
 

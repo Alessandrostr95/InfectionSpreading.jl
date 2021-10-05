@@ -5,11 +5,11 @@ export
 SirModel,
 # Models
 NETWORK, ERDOS_RENYI,
-TORUS_U_ERDOS_RENYI, TORUS_U_MATCHING, TORUS_U_RANDOM_GRAPH,
-CYCLE_U_ERDOS_RENYI, CYCLE_U_MATCHING, CYCLE_U_RANDOM_GRAPH,
+TORUS_U_ERDOS_RENYI, TORUS_U_MATCHING, TORUS_U_POWERLAW,
+CYCLE_U_ERDOS_RENYI, CYCLE_U_MATCHING, CYCLE_U_POWERLAW,
 TWO_CLUSTER_SBM,
-LATTICE, LATTICE_U_RANDOM_GRAPH,
-HYPERCUBE, HYPERCUBE_U_RANDOM_GRAPH,
+LATTICE, LATTICE_U_POWERLAW,
+HYPERCUBE, HYPERCUBE_U_POWERLAW,
 # Methods
 set_infected!, set_recovered!, infected, recovered, is_infected, is_recovered,
 add_infected!, add_recovered!, infect!, recover!, is_susceptible,
@@ -93,14 +93,14 @@ end
     - α > 0 is a given constant value
     - d(u,v) is distance between u and v on the torus graph
 """
-mutable struct TORUS_U_RANDOM_GRAPH <: SirModel
+mutable struct TORUS_U_POWERLAW <: SirModel
     graph::SimpleGraph
     rows::Integer
     columns::Integer
     α::Real
     infected::Set{Integer}
     recovered::Set{Integer}
-    function TORUS_U_RANDOM_GRAPH(rows::Integer, columns::Integer, α::Real)
+    function TORUS_U_POWERLAW(rows::Integer, columns::Integer, α::Real)
         (α ≤ 0) && throw(DomainError("α must be a strictly positive value. $α given."))
         #t = torus_graph(rows, columns)
         t = torus_SWG(rows, columns, α)
@@ -148,12 +148,12 @@ end
     - α > 0 is a given constant value
     - d(u,v) is distance between u and v on the ring
 """
-mutable struct CYCLE_U_RANDOM_GRAPH <: SirModel
+mutable struct CYCLE_U_POWERLAW <: SirModel
     graph::SimpleGraph
     α::Real
     infected::Set{Integer}
     recovered::Set{Integer}
-    function CYCLE_U_RANDOM_GRAPH(n::Integer, α::Real)
+    function CYCLE_U_POWERLAW(n::Integer, α::Real)
         (n ≤ 2) && throw(DomainError("n must be greather then 2. $n given."))
         (α ≤ 0) && throw(DomainError("α must be a strictly positive value. $α given."))
         return new(grass_hop_rb(n, α), α, Set{Integer}(), Set{Integer}())
@@ -197,21 +197,21 @@ end
 LATTICE(shape::Vector{T}) where T <: Integer = LATTICE(shape...)
 LATTICE(shape::Tuple{T}) where T <: Integer = LATTICE(shape...)
 
-mutable struct LATTICE_U_RANDOM_GRAPH <: SirModel
+mutable struct LATTICE_U_POWERLAW <: SirModel
     graph::SimpleGraph
     shape::NTuple{N,Integer} where N
     α::Real
     infected::Set{Integer}
     recovered::Set{Integer}
-    function LATTICE_U_RANDOM_GRAPH(α::Real, shape::Integer...)
+    function LATTICE_U_POWERLAW(α::Real, shape::Integer...)
         (α ≤ 0) && throw(DomainError("α must be a strictly positive value. $α given."))
         l = lattice(shape...)
         return new(SWG(l, α), shape, α, Set{Integer}(), Set{Integer}())
     end
 end
 
-LATTICE_U_RANDOM_GRAPH(α::Real, shape::Vector{T}) where T <: Integer = LATTICE_U_RANDOM_GRAPH(α, shape...)
-LATTICE_U_RANDOM_GRAPH(α::Real, shape::Tuple{T}) where T <: Integer = LATTICE_U_RANDOM_GRAPH(α, shape...)
+LATTICE_U_POWERLAW(α::Real, shape::Vector{T}) where T <: Integer = LATTICE_U_POWERLAW(α, shape...)
+LATTICE_U_POWERLAW(α::Real, shape::Tuple{T}) where T <: Integer = LATTICE_U_POWERLAW(α, shape...)
 
 """
     A N-dimension hypercube
@@ -226,13 +226,13 @@ mutable struct HYPERCUBE <: SirModel
     end
 end
 
-mutable struct HYPERCUBE_U_RANDOM_GRAPH <: SirModel
+mutable struct HYPERCUBE_U_POWERLAW <: SirModel
     graph::SimpleGraph
     dimension::Int64
     α::Real
     infected::Set{Integer}
     recovered::Set{Integer}
-    function HYPERCUBE_U_RANDOM_GRAPH(N::Int64, α::Real)
+    function HYPERCUBE_U_POWERLAW(N::Int64, α::Real)
         (α ≤ 0) && throw(DomainError("α must be a strictly positive value. $α given."))
         h = hypercube(N)
         return new(SWG(h, α), N, α, Set{Integer}(), Set{Integer}())

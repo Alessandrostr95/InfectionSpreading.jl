@@ -1,6 +1,10 @@
+using Statistics:mean, stdm, std
+import Plots
+# using ProgressMeter # un po' buggato, appena risolvono lo inserisco
+
 """
     Given a graph, a set of infected and a contagion_probability, this function
-    computer a Reed-Frost process and return a dictionary with the following informations:
+    compute a Reed-Frost process and return a dictionary with the following informations:
 
      - "infected series" => the number of infected over time,
      - "total infected" => the number of total infected,
@@ -67,6 +71,34 @@ function reed_frost_process(
 end
 
 """
+    Function that compute ´repeat´ times the reed_frost_process function over
+    the given parameter, and return the mean values of all results.
+"""
+function reed_frost_process(
+    graph::SirModel,
+    first_infected::T, 
+    contagion_probability::Float64,
+    repeat::Int64
+    )::Dict{String, Float64} where T <: Union{Vector, Array, Tuple}
+    
+    results = Dict[]
+    for _=1:repeat
+        push!(results, reed_frost_process(graph, first_infected, contagion_probability))
+    end
+
+    Dict{String, Float64}(
+        "total infected" => mean([x["total infected"] for x in results]),
+        "% infected" => mean([x["% infected"] for x in results]),
+        "survived" => mean([x["survived"] for x in results]),
+        "% survived" => mean([x["% survived"] for x in results]),
+        "age" => mean([x["age"] for x in results]),
+        "contagion probability" => contagion_probability,
+        "number of node" => convert(Float64, nv(graph.graph)),
+        "number of edges" => convert(Float64, ne(graph.graph))
+    )
+end
+
+"""
     Method which, given a model and a dictionary with the correct values,
     constructs and returns an instance of the given model
 """
@@ -77,24 +109,20 @@ function create(model_type::DataType, params::Dict)::SirModel
 
     model_type == TORUS_U_ERDOS_RENYI && return TORUS_U_ERDOS_RENYI(params[:rows], params[:columns], params[:p])
     model_type == TORUS_U_MATCHING && return TORUS_U_MATCHING(params[:rows], params[:columns])
-    model_type == TORUS_U_RANDOM_GRAPH && return TORUS_U_RANDOM_GRAPH(params[:rows], params[:columns], params[:α])
+    model_type == TORUS_U_POWERLAW && return TORUS_U_POWERLAW(params[:rows], params[:columns], params[:α])
 
     model_type == CYCLE_U_ERDOS_RENYI && return CYCLE_U_ERDOS_RENYI(params[:n], params[:p])
     model_type == CYCLE_U_MATCHING && return CYCLE_U_MATCHING(params[:n])
-    model_type == CYCLE_U_RANDOM_GRAPH && return CYCLE_U_RANDOM_GRAPH(params[:n], params[:α])
+    model_type == CYCLE_U_POWERLAW && return CYCLE_U_POWERLAW(params[:n], params[:α])
 
     model_type == TWO_CLUSTER_SBM && return TWO_CLUSTER_SBM(params[:n1], params[:n2], params[:inner_p], params[:outer_p])
 
     model_type == LATTICE && return LATTICE(params[:shape])
-    model_type == LATTICE_U_RANDOM_GRAPH && return LATTICE_U_RANDOM_GRAPH(params[:α], params[:shape])
+    model_type == LATTICE_U_POWERLAW && return LATTICE_U_POWERLAW(params[:α], params[:shape])
 
     model_type == HYPERCUBE && return HYPERCUBE(params[:dimension])
-    model_type == HYPERCUBE_U_RANDOM_GRAPH && return HYPERCUBE_U_RANDOM_GRAPH(params[:dimension], params[:α])
+    model_type == HYPERCUBE_U_POWERLAW && return HYPERCUBE_U_POWERLAW(params[:dimension], params[:α])
 end
-
-using Statistics:mean, stdm, std
-import Plots
-# using ProgressMeter # un po' buggato, appena risolvono lo inserisco
 
 """
     This function simulate the RF process over a set of graphs, within a range of probabilities.
@@ -117,6 +145,7 @@ function simulation(
     first_infected::T,
     model_type::DataType,
     constructor_params::Dict;
+    repeat::Int64=1,
     #ε::Float64=1.0e-4,
     ε::Float64=0.01,
     probs_limits::Tuple{Float64, Float64}=(1.0e-6, 1 - 1.0e-6),
@@ -140,6 +169,7 @@ function simulation(
     return simulation(
         samples_models,
         first_infected;
+        repeat=repeat,
         ε=ε,
         probs_limits=probs_limits,
         plot_result=plot_result,
@@ -164,6 +194,7 @@ end
 function simulation(
     samples_models::Vector{<:SirModel},
     first_infected::T;
+    repeat::Int64=1,
     ε::Float64=0.01,
     probs_limits::Tuple{Float64, Float64}=(1.0e-6, 1 - 1.0e-6),
     plot_result=false,
@@ -178,13 +209,13 @@ function simulation(
     i = 0
     for p=probs_limits[1]:ε:probs_limits[2]
         res = Float64[]
-        all_times = Int64[]
-        total_infected = Int64[]
+        all_times = Float64[]
+        total_infected = Float64[]
 
         for g in samples_models
             reset_model(g)
 
-            rf_process::Dict{String, Any} = reed_frost_process(g, first_infected, p)
+            rf_process::Dict{String, Float64} = reed_frost_process(g, first_infected, p, repeat)
 
             push!(res, rf_process["% infected"])
             push!(all_times, rf_process["age"])
